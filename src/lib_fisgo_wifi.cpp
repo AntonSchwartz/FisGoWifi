@@ -13,11 +13,26 @@ Fisgo_Wifi::~Fisgo_Wifi()
 
 string Fisgo_Wifi::convert_cyrillic(string ssid)
 {
+    uint32_t copy_size      = 0;                // размер байт для копирования
+    uint32_t rest           = ssid.size();      // остаток байт
+    const uint8_t size_code = sizeof(uint64_t); // размер русского символа
+
     string tmp = "";
+
     for ( uint32_t index = 0; index < ssid.size(); )
     {
         uint64_t code = 0;
-        memcpy(&code, &ssid[index], sizeof(code));
+
+        if ( size_code < rest )
+        {
+            copy_size = size_code;
+        }
+        else
+        {
+            copy_size = rest;
+        }
+
+        memcpy(&code, &ssid[index], copy_size);
 
         uint64_t ibm1 = code & CYR_TEST_1;
         uint64_t ibm2 = code & CYR_TEST_2;
@@ -97,11 +112,13 @@ string Fisgo_Wifi::convert_cyrillic(string ssid)
             }
 
             index += CYR_SIZE;
+            rest -= CYR_SIZE;
         }
         else
         {
             tmp.push_back( ssid.at(index) );
             ++index;
+            --rest;
         }
     }
 
