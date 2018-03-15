@@ -196,6 +196,11 @@ bool Fisgo_Wifi::scan_net()
     return true;
 }
 
+Fisgo_Wifi::WIFI_STATUS Fisgo_Wifi::get_status()
+{
+    return state;
+}
+
 bool Fisgo_Wifi::create_cfg(const Wifi_Data &data, string password)
 {
     ofstream wpa_conf;
@@ -321,13 +326,13 @@ bool Fisgo_Wifi::init()
         }
     }
 
-    // необходимо для того, чтобы wpa_supplicant опросил все сети при инициализации
-    sleep(5);
-
     // попытка получения адреса к последней подключенной сети
     // попытка получения IP адреса
     // 5 попыток получения с интервалом в 3 секунды
     system("udhcpc -n -t 5 -i wlan0");
+
+    // обновление текущего статуса wi-fi
+    status();
 
     if ( err == -1 )
     {

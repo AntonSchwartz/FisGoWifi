@@ -160,6 +160,12 @@ private:
      */
     string convert_cyrillic(string ssid);
 
+    /**
+     * @brief status статус работы wi-fi
+     * @return значение из enum WIFI_STATUS
+     */
+    WIFI_STATUS status();
+
 public:
     Fisgo_Wifi();
     ~Fisgo_Wifi();
@@ -194,16 +200,16 @@ public:
     bool scan_net();
 
     /**
+     * @brief get_status статус работы wi-fi
+     * @return значение из enum WIFI_STATUS
+     */
+    WIFI_STATUS get_status();
+
+    /**
      * @brief create_def_cfg создание дефолтного конфига wpa_supplicant.conf
      * @return true в случае успешного создания, иначе false
      */
     bool create_def_cfg();
-
-    /**
-     * @brief status статус работы wi-fi
-     * @return значение из enum WIFI_STATUS
-     */
-    WIFI_STATUS status();
 
     /**
      * @brief is_ip_available проверка получения ip
