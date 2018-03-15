@@ -111,6 +111,7 @@ public:
         WIFI_ASSOCIATING        = 2,
         WIFI_COMPLETED          = 3,
         WIFI_DISCONNECTED       = 4,
+        WIFI_INITIALIZATION     = 5,
 
         WIFI_UNKNOWN_STATE
     };
@@ -128,7 +129,7 @@ public:
 private:
     vector<Wifi_Data> wifi_networks;    // список сетей
 
-    WIFI_STATUS state = WIFI_INTERFACE_DISABLED;    // статус состояния
+    WIFI_STATUS state = WIFI_INITIALIZATION;    // статус состояния
 
     /**
      * @brief create_cfg создание конфигурационного файла wpa_supplicant.conf
