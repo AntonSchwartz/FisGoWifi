@@ -128,10 +128,11 @@ string Fisgo_Wifi::convert_cyrillic(string ssid)
 bool Fisgo_Wifi::scan_net()
 {
     system("wpa_cli -i wlan0 scan");
-    usleep(10000);
-
+    usleep(100000);
     system("wpa_cli -i wlan0 scan_results > /FisGo/wifi/wifi_scan_results");
-    usleep(1000);
+    usleep(100000);
+
+    wifi_networks.clear();
 
     ifstream file;
     file.open( "/FisGo/wifi/wifi_scan_results" );
@@ -158,7 +159,7 @@ bool Fisgo_Wifi::scan_net()
             // перевод имени сети в читаемый вид при наличии кириллических символов
             data.ssid  = convert_cyrillic( data.ssid );
 
-            if ( data.ssid.compare("") == 0 )
+            if ( data.ssid.empty() )
             {
                 continue;
             }
@@ -178,21 +179,28 @@ bool Fisgo_Wifi::scan_net()
                 continue;
             }
 
-            if ( data.flags.find("WPA-PSK") != string::npos )
+            if ( !data.flags.empty() )
             {
-                data.sec = WIFI_SEC_WPA;
-            }
-            else if ( data.flags.find("WPA2-PSK") != string::npos )
-            {
-                data.sec = WIFI_SEC_WPA2;
-            }
-            else if ( data.flags.find("WEP") != string::npos )
-            {
-                data.sec = WIFI_SEC_WEP;
-            }
-            else if ( data.flags.find("EAP") != string::npos )
-            {
-                data.sec = WIFI_SEC_EAP;
+                if ( data.flags.find("WPA-PSK") != string::npos )
+                {
+                    data.sec = WIFI_SEC_WPA;
+                }
+                else if ( data.flags.find("WPA2-PSK") != string::npos )
+                {
+                    data.sec = WIFI_SEC_WPA2;
+                }
+                else if ( data.flags.find("WEP") != string::npos )
+                {
+                    data.sec = WIFI_SEC_WEP;
+                }
+                else if ( data.flags.find("EAP") != string::npos )
+                {
+                    data.sec = WIFI_SEC_EAP;
+                }
+                else
+                {
+                    continue;
+                }
             }
             else
             {
@@ -273,8 +281,7 @@ int8_t Fisgo_Wifi::is_wpa_run()
     for ( int8_t ret = 5; ret > 0; --ret )
     {
         system("pidof wpa_supplicant > /FisGo/wifi/wpa_supp_pid");
-
-        usleep(1000);
+        usleep(100000);
 
         ifstream pid("/FisGo/wifi/wpa_supp_pid");
 
@@ -316,6 +323,7 @@ string Fisgo_Wifi::getPassword(string bssid)
 
 bool Fisgo_Wifi::init()
 {
+    deinit();
     turn_on();
 
     int8_t err = -1;
@@ -328,8 +336,7 @@ bool Fisgo_Wifi::init()
 #else
         system("wpa_supplicant -Dnl80211 -iwlan0 -c/etc/wpa_supplicant.conf &");
 #endif
-
-        usleep(10000);
+        usleep(100000);
 
         err = is_wpa_run();
 
@@ -362,8 +369,7 @@ bool Fisgo_Wifi::init()
 void Fisgo_Wifi::deinit()
 {
     system("pidof wpa_supplicant > /FisGo/wifi/wpa_supp_pid");
-
-    usleep(10000);
+    usleep(100000);
 
     ifstream pid("/FisGo/wifi/wpa_supp_pid");
 
@@ -376,7 +382,6 @@ void Fisgo_Wifi::deinit()
         if ( !pid_str.empty() )
         {
             system("killall wpa_supplicant");
-            usleep(10000);
         }
     }
 
@@ -391,8 +396,7 @@ bool Fisgo_Wifi::clear()
 Fisgo_Wifi::WIFI_STATUS Fisgo_Wifi::status()
 {
     system("wpa_cli status | grep wpa_state | awk -F \"=\" '{print $2}' > /FisGo/wifi/wpa_state");
-
-    usleep(10000);
+    usleep(100000);
 
     ifstream wpa_state("/FisGo/wifi/wpa_state");
 
@@ -439,8 +443,7 @@ Fisgo_Wifi::WIFI_STATUS Fisgo_Wifi::status()
 bool Fisgo_Wifi::is_ip_available()
 {
     system("wpa_cli status | grep ip_address | awk -F \"=\" '{print $2}' > /FisGo/wifi/wpa_ip_available");
-
-    usleep(10000);
+    usleep(100000);
 
     ifstream ip("/FisGo/wifi/wpa_ip_available");
 
@@ -482,17 +485,10 @@ bool Fisgo_Wifi::connect(uint8_t idNet, string password)
         return false;
     }
 
-    // попытка получения IP адреса
-    // 5 попыток получения с интервалом в 3 секунды
-    system("udhcpc -n -t 5 -i wlan0");
-
     if ( is_ip_available() == false )
     {
         return false;
     }
-
-    // обновление текущего статуса wi-fi
-    status();
 
     savePassword( wifi_networks.at(idNet).bssid, password );
 
