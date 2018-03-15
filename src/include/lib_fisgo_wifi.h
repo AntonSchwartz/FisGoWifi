@@ -4,12 +4,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <mutex>
 #include <vector>
 #include <string>
 #include <future>
 #include <fstream>
-#include <iostream>
 #include <sstream>
+#include <iostream>
 
 #include "lib_fisgo_wifi_db.h"
 
@@ -128,6 +129,8 @@ public:
 
 private:
     vector<Wifi_Data> wifi_networks;    // список сетей
+
+    mutex wifi_mutex;   // mutex для доступа к wpa_supplicant
 
     WIFI_STATUS state = WIFI_INITIALIZATION;    // статус состояния
 

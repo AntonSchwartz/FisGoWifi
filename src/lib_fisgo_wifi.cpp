@@ -127,6 +127,8 @@ string Fisgo_Wifi::convert_cyrillic(string ssid)
 
 bool Fisgo_Wifi::scan_net()
 {
+    lock_guard<mutex> locker(wifi_mutex);
+
     system("wpa_cli -i wlan0 scan");
     usleep(100000);
     system("wpa_cli -i wlan0 scan_results > /FisGo/wifi/wifi_scan_results");
@@ -352,9 +354,11 @@ bool Fisgo_Wifi::init()
         }
     }
 
+    sleep(5);
+
     // попытка получения IP адреса
-    // 5 попыток получения с интервалом в 3 секунды
-    system("udhcpc -n -t 5 -i wlan0");
+    // 10 попыток получения с интервалом в 3 секунды
+    system("udhcpc -n -t 10 -i wlan0");
     // после попытки получения IP завершим udhcpc
     system("killall udhcpc");
 
@@ -468,6 +472,8 @@ bool Fisgo_Wifi::is_ip_available()
 
 bool Fisgo_Wifi::connect(uint8_t idNet, string password)
 {
+    lock_guard<mutex> locker(wifi_mutex);
+
     if ( is_wpa_run() == 0 )
     {
         deinit();
@@ -500,20 +506,30 @@ bool Fisgo_Wifi::connect(uint8_t idNet, string password)
 
 void Fisgo_Wifi::reconnect()
 {
-    if ( state == WIFI_COMPLETED )
+    if ( wifi_mutex.try_lock() == true )
     {
-        // сеть подключена, нет IP
-        if ( is_ip_available() == false )
+        if ( state != WIFI_INITIALIZATION )
         {
-            // попытка получения адреса к последней подключенной сети
-            // 5 попыток получения с интервалом в 3 секунды
-            system("udhcpc -n -t 5 -i wlan0");
-            // после попытки получения IP завершим udhcpc
-            system("killall udhcpc");
-
-            // обновление текущего статуса wi-fi
             status();
+
+            if ( state == WIFI_COMPLETED )
+            {
+                // сеть подключена, нет IP
+                if ( is_ip_available() == false )
+                {
+                    // попытка получения адреса к последней подключенной сети
+                    // 10 попыток получения с интервалом в 3 секунды
+                    system("udhcpc -n -t 10 -i wlan0");
+                    // после попытки получения IP завершим udhcpc
+                    system("killall udhcpc");
+
+                    // обновление текущего статуса wi-fi
+                    status();
+                }
+            }
         }
+
+        wifi_mutex.unlock();
     }
 }
 
