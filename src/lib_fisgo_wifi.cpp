@@ -323,6 +323,8 @@ string Fisgo_Wifi::getPassword(string bssid)
 
 bool Fisgo_Wifi::init()
 {
+    state = WIFI_INITIALIZATION;
+
     deinit();
     turn_on();
 
@@ -350,10 +352,11 @@ bool Fisgo_Wifi::init()
         }
     }
 
-    // попытка получения адреса к последней подключенной сети
     // попытка получения IP адреса
     // 5 попыток получения с интервалом в 3 секунды
     system("udhcpc -n -t 5 -i wlan0");
+    // после попытки получения IP завершим udhcpc
+    system("killall udhcpc");
 
     // обновление текущего статуса wi-fi
     status();
@@ -493,6 +496,25 @@ bool Fisgo_Wifi::connect(uint8_t idNet, string password)
     savePassword( wifi_networks.at(idNet).bssid, password );
 
     return true;
+}
+
+void Fisgo_Wifi::reconnect()
+{
+    if ( state == WIFI_COMPLETED )
+    {
+        // сеть подключена, нет IP
+        if ( is_ip_available() == false )
+        {
+            // попытка получения адреса к последней подключенной сети
+            // 5 попыток получения с интервалом в 3 секунды
+            system("udhcpc -n -t 5 -i wlan0");
+            // после попытки получения IP завершим udhcpc
+            system("killall udhcpc");
+
+            // обновление текущего статуса wi-fi
+            status();
+        }
+    }
 }
 
 void Fisgo_Wifi::turn_on()

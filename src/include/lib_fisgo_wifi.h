@@ -226,6 +226,13 @@ public:
     bool connect( uint8_t idNet, string password );
 
     /**
+     * @brief reconnect попытка подключения к сети
+     * необходима при подключении к только что включенной сети, к которой
+     * до этого была подключена
+     */
+    void reconnect();
+
+    /**
      * @brief turn_on поднять интерфейс wlan0
      */
     void turn_on();
