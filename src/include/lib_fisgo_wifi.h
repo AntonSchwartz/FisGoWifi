@@ -209,6 +209,12 @@ public:
     WIFI_STATUS get_status();
 
     /**
+     * @brief request_status запрос текущего статуса (опрос wpa_cli)
+     * @return значение из enum WIFI_STATUS
+     */
+    WIFI_STATUS request_status();
+
+    /**
      * @brief create_def_cfg создание дефолтного конфига wpa_supplicant.conf
      * @return true в случае успешного создания, иначе false
      */
@@ -229,11 +235,9 @@ public:
     bool connect( uint8_t idNet, string password );
 
     /**
-     * @brief reconnect попытка подключения к сети
-     * необходима при подключении к только что включенной сети, к которой
-     * до этого была подключена
+     * @brief request_ip попытка получения IP
      */
-    void reconnect();
+    void request_ip();
 
     /**
      * @brief turn_on поднять интерфейс wlan0

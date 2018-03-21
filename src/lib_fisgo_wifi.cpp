@@ -228,6 +228,11 @@ Fisgo_Wifi::WIFI_STATUS Fisgo_Wifi::get_status()
     return state;
 }
 
+Fisgo_Wifi::WIFI_STATUS Fisgo_Wifi::request_status()
+{
+    return status();
+}
+
 bool Fisgo_Wifi::create_cfg(const Wifi_Data &data, string password)
 {
     ofstream wpa_conf;
