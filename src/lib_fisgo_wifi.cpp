@@ -356,12 +356,6 @@ bool Fisgo_Wifi::init()
 
     sleep(5);
 
-    // попытка получения IP адреса
-    // 10 попыток получения с интервалом в 3 секунды
-    system("udhcpc -n -t 10 -i wlan0");
-    // после попытки получения IP завершим udhcpc
-    system("killall udhcpc");
-
     // обновление текущего статуса wi-fi
     status();
 
@@ -494,38 +488,38 @@ bool Fisgo_Wifi::connect(uint8_t idNet, string password)
         return false;
     }
 
+    // попытка получения адреса к последней подключенной сети
+    // 4 попытки получения с интервалом в 3 секунды
+    system("udhcpc -n -t 6 -i wlan0 -q >> /dev/null");
+
     if ( is_ip_available() == false )
     {
         return false;
     }
+
+    // Запрос нового статуса
+    status();
 
     savePassword( wifi_networks.at(idNet).bssid, password );
 
     return true;
 }
 
-void Fisgo_Wifi::reconnect()
+void Fisgo_Wifi::request_ip()
 {
     if ( wifi_mutex.try_lock() == true )
     {
         if ( state != WIFI_INITIALIZATION )
         {
-            status();
-
-            if ( state == WIFI_COMPLETED )
+            // сеть подключена, нет IP
+            if ( is_ip_available() == false )
             {
-                // сеть подключена, нет IP
-                if ( is_ip_available() == false )
-                {
-                    // попытка получения адреса к последней подключенной сети
-                    // 10 попыток получения с интервалом в 3 секунды
-                    system("udhcpc -n -t 10 -i wlan0");
-                    // после попытки получения IP завершим udhcpc
-                    system("killall udhcpc");
+                // попытка получения адреса к последней подключенной сети
+                // 4 попытки получения с интервалом в 3 секунды
+                system("udhcpc -n -t 6 -i wlan0 -q >> /dev/null");
 
-                    // обновление текущего статуса wi-fi
-                    status();
-                }
+                // обновление текущего статуса wi-fi
+                status();
             }
         }
 
@@ -541,6 +535,7 @@ void Fisgo_Wifi::turn_on()
 
 void Fisgo_Wifi::turn_off()
 {
+    system("ifconfig wlan0 0.0.0.0");
     system("ifconfig wlan0 down");
     sleep(3);
 }
