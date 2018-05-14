@@ -244,7 +244,11 @@ bool Fisgo_Wifi::create_cfg(const Wifi_Data &data, string password)
     {
         wpa_conf << "ctrl_interface=/var/run/wpa_supplicant" << endl;
         wpa_conf << "network={" << endl;
+        #ifdef DREAMKAS_RF
         wpa_conf << "bssid=" << data.bssid << ""<< endl;
+        #else
+        wpa_conf << "ssid=\"" << data.ssid << "\""<< endl;
+        #endif
         wpa_conf << "psk=\"" << password << "\""<< endl;
         wpa_conf << "}" << endl;
         wpa_conf.flush();
@@ -268,7 +272,11 @@ bool Fisgo_Wifi::create_def_cfg()
     {
         wpa_conf << "ctrl_interface=/var/run/wpa_supplicant" << endl;
         wpa_conf << "network={" << endl;
+        #ifdef DREAMKAS_RF
         wpa_conf << "bssid=BE:EF:13:00:00:00"<< endl;
+        #else
+        wpa_conf << "ssid=\"DreamkasGuest\""<< endl;
+        #endif
         wpa_conf << "psk=\"12345678\""<< endl;
         wpa_conf << "}" << endl;
         wpa_conf.flush();
