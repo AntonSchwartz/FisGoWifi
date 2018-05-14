@@ -158,8 +158,10 @@ bool Fisgo_Wifi::scan_net()
             data.flags = list.at(3);
             data.ssid  = list.at(4);
 
+            #ifdef DREAMKAS_RF
             // перевод имени сети в читаемый вид при наличии кириллических символов
             data.ssid  = convert_cyrillic( data.ssid );
+            #endif
 
             if ( data.ssid.empty() )
             {
