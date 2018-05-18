@@ -387,6 +387,7 @@ bool Fisgo_Wifi::init()
     sleep(5);
 
     // обновление текущего статуса wi-fi
+    status();
 
     if ( err == -1 )
     {
