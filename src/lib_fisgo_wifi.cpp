@@ -3,8 +3,8 @@
 
 Fisgo_Wifi::Fisgo_Wifi()
 {
-    string sbin_wpa_cli  = "/usr/sbin/wpa_cli ";
-    string local_wpa_cli = "/usr/local/bin/wpa_cli ";
+    string sbin_wpa_cli  = "/usr/sbin/wpa_cli";
+    string local_wpa_cli = "/usr/local/bin/wpa_cli";
 
     if ( access(sbin_wpa_cli.c_str(), F_OK) != -1 )
     {
