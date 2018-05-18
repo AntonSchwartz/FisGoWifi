@@ -3,6 +3,18 @@
 
 Fisgo_Wifi::Fisgo_Wifi()
 {
+    string sbin_wpa_cli  = "/usr/sbin/wpa_cli ";
+    string local_wpa_cli = "/usr/local/bin/wpa_cli ";
+
+    if ( access(sbin_wpa_cli.c_str(), F_OK) != -1 )
+    {
+        wpa_cli = sbin_wpa_cli;
+    }
+    else if ( access(local_wpa_cli.c_str(), F_OK) != -1 )
+    {
+        wpa_cli = local_wpa_cli;
+    }
+
     Fisgo_Wifi_DB::instance();
 }
 
@@ -129,9 +141,12 @@ bool Fisgo_Wifi::scan_net()
 {
     lock_guard<mutex> locker(wifi_mutex);
 
-    system("wpa_cli -i wlan0 scan");
+    string scan = wpa_cli + " -i wlan0 scan";
+    system( scan.c_str() );
     usleep(100000);
-    system("wpa_cli -i wlan0 scan_results > /FisGo/wifi/wifi_scan_results");
+
+    string scan_result = wpa_cli + " -i wlan0 scan_results > /FisGo/wifi/wifi_scan_results";
+    system( scan_result.c_str() );
     usleep(100000);
 
     wifi_networks.clear();
@@ -372,7 +387,6 @@ bool Fisgo_Wifi::init()
     sleep(5);
 
     // обновление текущего статуса wi-fi
-    status();
 
     if ( err == -1 )
     {
@@ -411,7 +425,8 @@ bool Fisgo_Wifi::clear()
 
 Fisgo_Wifi::WIFI_STATUS Fisgo_Wifi::status()
 {
-    system("wpa_cli status | grep wpa_state | awk -F \"=\" '{print $2}' > /FisGo/wifi/wpa_state");
+    string state_wpa_cli = wpa_cli + " status | grep wpa_state | awk -F \"=\" '{print $2}' > /FisGo/wifi/wpa_state";
+    system( state_wpa_cli.c_str() );
     usleep(100000);
 
     ifstream wpa_state("/FisGo/wifi/wpa_state");
@@ -458,7 +473,8 @@ Fisgo_Wifi::WIFI_STATUS Fisgo_Wifi::status()
 
 bool Fisgo_Wifi::is_ip_available()
 {
-    system("wpa_cli status | grep ip_address | awk -F \"=\" '{print $2}' > /FisGo/wifi/wpa_ip_available");
+    string state_ip = wpa_cli + " status | grep ip_address | awk -F \"=\" '{print $2}' > /FisGo/wifi/wpa_ip_available";
+    system( state_ip.c_str() );
     usleep(100000);
 
     ifstream ip("/FisGo/wifi/wpa_ip_available");
