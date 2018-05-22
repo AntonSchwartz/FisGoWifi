@@ -135,6 +135,7 @@ private:
     WIFI_STATUS state = WIFI_INITIALIZATION;    // статус состояния
 
     string wpa_cli = "";    // Путь до wpa_cli
+    string exp_ld  = "";
 
     /**
      * @brief create_cfg создание конфигурационного файла wpa_supplicant.conf

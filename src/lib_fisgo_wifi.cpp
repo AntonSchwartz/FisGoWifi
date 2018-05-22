@@ -15,6 +15,10 @@ Fisgo_Wifi::Fisgo_Wifi()
         wpa_cli = local_wpa_cli;
     }
 
+#ifdef DREAMKAS_F
+    exp_ld = "export LD_LIBRARY_PATH=/usr/local/lib/ && ";
+#endif
+
     Fisgo_Wifi_DB::instance();
 }
 
@@ -141,11 +145,11 @@ bool Fisgo_Wifi::scan_net()
 {
     lock_guard<mutex> locker(wifi_mutex);
 
-    string scan = wpa_cli + " -i wlan0 scan";
+    string scan = exp_ld + wpa_cli + " -i wlan0 scan";
     system( scan.c_str() );
     usleep(100000);
 
-    string scan_result = wpa_cli + " -i wlan0 scan_results > /FisGo/wifi/wifi_scan_results";
+    string scan_result = exp_ld + wpa_cli + " -i wlan0 scan_results > /FisGo/wifi/wifi_scan_results";
     system( scan_result.c_str() );
     usleep(100000);
 
@@ -426,7 +430,7 @@ bool Fisgo_Wifi::clear()
 
 Fisgo_Wifi::WIFI_STATUS Fisgo_Wifi::status()
 {
-    string state_wpa_cli = wpa_cli + " status | grep wpa_state | awk -F \"=\" '{print $2}' > /FisGo/wifi/wpa_state";
+    string state_wpa_cli = exp_ld +  wpa_cli + " status | grep wpa_state | awk -F \"=\" '{print $2}' > /FisGo/wifi/wpa_state";
     system( state_wpa_cli.c_str() );
     usleep(100000);
 
@@ -474,7 +478,7 @@ Fisgo_Wifi::WIFI_STATUS Fisgo_Wifi::status()
 
 bool Fisgo_Wifi::is_ip_available()
 {
-    string state_ip = wpa_cli + " status | grep ip_address | awk -F \"=\" '{print $2}' > /FisGo/wifi/wpa_ip_available";
+    string state_ip = exp_ld + wpa_cli + " status | grep ip_address | awk -F \"=\" '{print $2}' > /FisGo/wifi/wpa_ip_available";
     system( state_ip.c_str() );
     usleep(100000);
 
