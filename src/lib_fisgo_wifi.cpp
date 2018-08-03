@@ -145,9 +145,33 @@ bool Fisgo_Wifi::scan_net()
 {
     lock_guard<mutex> locker(wifi_mutex);
 
-    string scan = exp_ld + wpa_cli + " -i wlan0 scan";
-    system( scan.c_str() );
-    usleep(100000);
+    const uint8_t TRY_COUNT_SCAN = 10;
+
+    string result = "";
+    for ( uint8_t tryCount = 0; tryCount != TRY_COUNT_SCAN; ++tryCount )
+    {
+        string scan = exp_ld + wpa_cli + " -i wlan0 scan > /FisGo/wifi/wifi_scan";
+        system( scan.c_str() );
+        usleep(100000);
+
+        ifstream fileScan;
+        fileScan.open( "/FisGo/wifi/wifi_scan" );
+        if ( fileScan.is_open() )
+        {
+            getline( fileScan,  result);
+            fileScan.close();
+            remove("/FisGo/wifi/wifi_scan");
+        }
+
+        if ( result.compare("OK") == 0 )
+        {
+            break;
+        }
+        else
+        {
+            sleep(1);
+        }
+    }
 
     string scan_result = exp_ld + wpa_cli + " -i wlan0 scan_results > /FisGo/wifi/wifi_scan_results";
     system( scan_result.c_str() );
